@@ -37,6 +37,9 @@ router.get("/tasks", auth, async (req, res) => {
 				sort,
 			},
 		});
+		if (!req.user.tasks) {
+			return res.send({ error: "Couldnt get tasks" });
+		}
 		res.send(req.user.tasks);
 	} catch (e) {
 		res.status(400).send(e);

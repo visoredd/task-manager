@@ -42,7 +42,7 @@ router.get("/tasks", auth, async (req, res) => {
 		}
 		res.send(req.user.tasks);
 	} catch (e) {
-		res.status(400).send(e);
+		res.status(400).send({ error: "Couldnt get tasks!!!" });
 	}
 });
 

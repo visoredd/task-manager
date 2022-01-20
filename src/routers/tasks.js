@@ -21,6 +21,8 @@ router.get("/tasks", auth, async (req, res) => {
 	try {
 		const match = {};
 		const sort = {};
+		const tasks = await Task.find({ owner: req.user._id });
+		return res.send(tasks);
 		if (req.query.completed) {
 			match.completed = req.query.completed === "true";
 		}

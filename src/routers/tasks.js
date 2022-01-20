@@ -19,30 +19,22 @@ router.post("/tasks", auth, async (req, res) => {
 //GET /tasks?sortBy=createdAt:desc
 router.get("/tasks", auth, async (req, res) => {
 	try {
-		const match = {};
-		const sort = {};
-		const tasks = await Task.find({ owner: req.user._id });
-		return res.send(tasks);
+		const skip = parseInt(req.query.skip) || 0;
+		const limit = parseInt(req.query.limit) || 10;
+		let tasks = await Task.find({ owner: req.user._id });
+
 		if (req.query.completed) {
-			match.completed = req.query.completed === "true";
+			tasks = tasks.filter((task) => task.completed.toString() === req.query.completed);
 		}
 		if (req.query.sortBy) {
 			const parts = req.query.sortBy.split(":");
-			sort[parts[0]] = parts[1] === "desc" ? -1 : 1;
+			let order = parts[1] === "desc" ? 1 : -1;
+
+			tasks = tasks.sort((a, b) =>
+				a[parts[0]] > b[parts[0]] ? order : b[parts[0]] > a[parts[0]] ? -order : 0
+			);
 		}
-		await req.user.populate({
-			path: "tasks",
-			match,
-			options: {
-				limit: parseInt(req.query.limit),
-				skip: parseInt(req.query.skip),
-				sort,
-			},
-		});
-		if (!req.user.tasks) {
-			return res.send({ error: "Couldnt get tasks" });
-		}
-		res.send(req.user.tasks);
+		return res.send(tasks.slice(skip, limit + skip));
 	} catch (e) {
 		res.status(400).send({ error: "Couldnt get tasks!!!" });
 	}
